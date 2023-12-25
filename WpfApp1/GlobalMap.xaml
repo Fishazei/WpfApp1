@@ -9,7 +9,7 @@
       Title="GlobalMap"
       Name="GlobalMap1">
 
-    <Grid>
+    <Grid Name="MainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
             <RowDefinition Height="13*"/>

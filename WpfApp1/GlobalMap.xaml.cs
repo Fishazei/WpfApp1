@@ -26,7 +26,7 @@ namespace WpfApp1
         double l, m;
         double force;
 
-        public Image MyImage { get; set; }
+        public Line FLine { get; set; }
         public Rectangle MyRectangle { get; set; }
         Canvas myCanvas;
 
@@ -48,66 +48,82 @@ namespace WpfApp1
             Canvas.SetTop(MyRectangle, y0 - 10);
             Canvas.SetLeft(MyRectangle, x0 - 10);
 
-            myCanvas.Children.Add(MyRectangle);
+            //Задание лески
+            FLine = new Line();
+            FLine.X1 = x0;
+            FLine.Y1 = y0;
+            FLine.X2 = x0;
+            FLine.Y2 = y0;
+            FLine.StrokeThickness = 4;
+            FLine.Stroke = new SolidColorBrush(Colors.AliceBlue);
 
+            myCanvas.Children.Add(MyRectangle);
+            myCanvas.Children.Add(FLine);
             // Вычисление силы вылета в зависимости от времени зажатия
             force = Math.Min(100, heldTime.TotalMilliseconds / 800);
 
-            //Эксперимент
-            Line line = new Line();
-            line.X1 = x0;
-            line.Y1 = y0;
-            line.X2 = l * force + x0;
-            line.Y2 = m * force + y0;
-            line.StrokeThickness = 4;
-            line.Stroke = new SolidColorBrush(Colors.AliceBlue);
+            MakeUP();
+        }
 
-            myCanvas.Children.Add(line);
-            MessageBox.Show($"{line.X2}, {line.Y2}");
-
-            // Создание анимации перемещения
-            TranslateTransform translateTransform = new TranslateTransform();
-            MyRectangle.RenderTransform = translateTransform;
-
-            DoubleAnimation animationX = new DoubleAnimation
+        public bool MakeUP()
+        {
+            double f = 0;
+            while (f < force)
             {
-                From = 0,
-                To = l * force,
-                Duration = TimeSpan.FromSeconds(0.5)
-            };
+                f += 0.001;
+                xcur = l * f - 10 + x0;
+                ycur = m * f - 10 + y0;
 
-            DoubleAnimation animationY = new DoubleAnimation
-            {
-                From= 0,
-                To = m * force,
-                Duration = TimeSpan.FromSeconds(0.5)
-            };
-            animationX.IsAdditive = true;
-            animationY.IsAdditive = true;
+                Canvas.SetTop(MyRectangle, ycur);
+                Canvas.SetLeft(MyRectangle, xcur);
 
-            translateTransform.BeginAnimation(TranslateTransform.XProperty, animationX);
-            translateTransform.BeginAnimation(TranslateTransform.YProperty, animationY);
+                FLine.X2 = l * f + x0;
+                FLine.Y2 = m * f + y0;
 
-            xcur = l * force - 10 + x0;
-            ycur = m * force - 10 + y0;
+            }
 
+            return true;
+        }
 
-            
+        public void Move0(double currentTop, double currentLeft)
+        {
+            y0 = currentLeft + 50;
+            x0 = currentTop + 50;
+
+            FLine.X1 = x0;
+            FLine.Y1 = y0;
+
+            l = xcur - 10 - x0;
+            m = ycur - 10 - y0;
         }
 
         public void GoBack()
         {
-            
+            l = xcur - 10 - x0;
+            m = ycur - 10 - y0;
+
             xcur -= l * force * 0.01;
             ycur -= m * force * 0.01;
 
-            MessageBox.Show($"{Canvas.GetTop(MyRectangle)}, {Canvas.GetLeft(MyRectangle)}");
+            FLine.X2 -= l * force * 0.01;
+            FLine.Y2 -= m * force * 0.01;
 
             Canvas.SetTop(MyRectangle, ycur);
             Canvas.SetLeft(MyRectangle, xcur);
 
-            MessageBox.Show($"{Canvas.GetTop(MyRectangle)}, {Canvas.GetLeft(MyRectangle)}");
+            CheckMePLS(xcur, ycur);
         }
+
+        public void DeleteMePLS()
+        {
+            myCanvas.Children.Remove(MyRectangle);
+            myCanvas.Children.Remove(FLine);
+            myCanvas = null;
+
+        }
+        //Событие 
+        public delegate void Handler(double xcur, double ycur);
+        public event Handler CheckMePLS;
     }
     /// <summary>
     /// Interaction logic for GlobalMap.xaml
@@ -152,33 +168,39 @@ namespace WpfApp1
             double currentLeft = Canvas.GetLeft(movingRectangle);
             double currentTop = Canvas.GetTop(movingRectangle);
 
-            if (!isThrHook && Keyboard.IsKeyDown(Key.W) && currentTop - MoveSpeed > 100)
+            if (Keyboard.IsKeyDown(Key.W) && currentTop - MoveSpeed > 100)
             {
                 Canvas.SetTop(movingRectangle, currentTop - MoveSpeed);
+                if (myHook != null) myHook.Move0(Canvas.GetLeft(movingRectangle), Canvas.GetTop(movingRectangle));
             }
-            if (!isThrHook && Keyboard.IsKeyDown(Key.S) && currentTop + movingRectangle.Width + MoveSpeed < 655)
+            if (Keyboard.IsKeyDown(Key.S) && currentTop + movingRectangle.Width + MoveSpeed < 655)
             {
                 Canvas.SetTop(movingRectangle, currentTop + MoveSpeed);
+                if (myHook != null) myHook.Move0(Canvas.GetLeft(movingRectangle), Canvas.GetTop(movingRectangle));
             }
-            if (!isThrHook && Keyboard.IsKeyDown(Key.D) && currentLeft + movingRectangle.Width + MoveSpeed < 185)
+            if (Keyboard.IsKeyDown(Key.D) && currentLeft + movingRectangle.Width + MoveSpeed < 185)
             {
                 Canvas.SetLeft(movingRectangle, currentLeft + MoveSpeed);
+                if (myHook != null) myHook.Move0(Canvas.GetLeft(movingRectangle), Canvas.GetTop(movingRectangle));
             }
-            if (!isThrHook && Keyboard.IsKeyDown(Key.A) && currentLeft - MoveSpeed > 10)
+            if (Keyboard.IsKeyDown(Key.A) && currentLeft - MoveSpeed > 10)
             {
                 Canvas.SetLeft(movingRectangle, currentLeft - MoveSpeed);
+                if (myHook != null) myHook.Move0(Canvas.GetLeft(movingRectangle), Canvas.GetTop(movingRectangle));
             }
             //Начали замахиваться
-            if (Keyboard.IsKeyDown(Key.Space) && !isSpaceKeyDown)
+            if (Keyboard.IsKeyDown(Key.Space) && !isSpaceKeyDown && !isThrHook)
             {
                 isSpaceKeyDown = true;
                 keyDownTime = DateTime.Now;
             }
             //Тянем назад
-            if (isThrHook && Keyboard.IsKeyDown(Key.E))
+            if (isThrHook && Keyboard.IsKeyDown(Key.Space))
             {
                 myHook.GoBack();
             }
+            //Опустили крючок и начали рыбачить
+
         }
         //Кинули крюк
         public void HookThr(object sender, EventArgs e)
@@ -204,7 +226,28 @@ namespace WpfApp1
                     MyCanvas,
                     heldTime
                     );
+
+                myHook.CheckMePLS += Cheker;
             }
+        }
+
+        //Проверка крюка на все венерические 
+        void Cheker(double x, double y)
+        {
+            double currentLeft = Canvas.GetLeft(movingRectangle);
+            double currentTop = Canvas.GetTop(movingRectangle);
+           
+            //Проверка на полное сматывание удочки
+            if (x + 20 > currentLeft && x < currentLeft + 100)
+                if (y + 20 > currentTop && y < currentTop + 100)
+                {
+                    myHook.CheckMePLS -= Cheker;
+                    isThrHook = false;
+                    myHook.DeleteMePLS();
+                }
+            //Проверка на попадание на корягу
+
+
         }
 
         private async Task GameLoop()
@@ -217,7 +260,7 @@ namespace WpfApp1
 
         private void CreateTexture()
         {
-            MapGenerator mapGenerator = new MapGenerator(15,22);
+            MapGenerator mapGenerator = new MapGenerator(12,22);
             // Устанавливаем текстуру как источник изображения для Image
             matrixImage.Source = mapGenerator.CreateTexture();
         }
