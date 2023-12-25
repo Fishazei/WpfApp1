@@ -1,0 +1,35 @@
+﻿<Page x:Class="WpfApp1.GlobalMap"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:WpfApp1"
+      mc:Ignorable="d" 
+      d:DesignHeight="705" d:DesignWidth="1200"
+      Title="GlobalMap"
+      Name="GlobalMap1">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="13*"/>
+        </Grid.RowDefinitions>
+        <!--<Grid.Background> -->
+        <!--<ImageBrush ImageSource="/Sprite-0001.png"/>-->
+        <!--</Grid.Background> -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="5*"/>
+        </Grid.ColumnDefinitions>
+
+        <Image Name="matrixImage" Stretch="UniformToFill"  Grid.Column="1" Grid.Row="1"/>
+
+        <Canvas Name="MyCanvas" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="705" Grid.RowSpan="2" VerticalAlignment="Top" Width="1200">
+            <Rectangle Name="movingRectangle" Width="100" Height="100" Margin="0" Canvas.Left="10" Canvas.Top="100">
+                <Rectangle.Fill>
+                    <SolidColorBrush Color="BlueViolet" />
+                </Rectangle.Fill>
+            </Rectangle>
+        </Canvas>    
+    </Grid>
+</Page>
