@@ -22,7 +22,7 @@ namespace WpfApp1
     class HookMap
     {
         double x0, y0;
-        double xcur, ycur;
+        public double xcur, ycur;
         double l, m;
         double force;
 
@@ -44,7 +44,7 @@ namespace WpfApp1
 
             MyRectangle.Height = 20;
             MyRectangle.Width = 20;
-            MyRectangle.Fill = new SolidColorBrush(Colors.AliceBlue);
+            MyRectangle.Fill = new SolidColorBrush(Colors.IndianRed);
             Canvas.SetTop(MyRectangle, y0 - 10);
             Canvas.SetLeft(MyRectangle, x0 - 10);
 
@@ -79,7 +79,6 @@ namespace WpfApp1
 
                 FLine.X2 = l * f + x0;
                 FLine.Y2 = m * f + y0;
-
             }
 
             return true;
@@ -99,9 +98,6 @@ namespace WpfApp1
 
         public void GoBack()
         {
-            l = xcur - 10 - x0;
-            m = ycur - 10 - y0;
-
             xcur -= l * force * 0.01;
             ycur -= m * force * 0.01;
 
@@ -131,15 +127,21 @@ namespace WpfApp1
     public partial class GlobalMap : Page
     {
         private const int TimerInterval = 16; // Примерно 60 FPS
-        private const int MoveSpeed = 5;
+        private const int MoveSpeed = 5;      // Скорость персонажа
 
-        private DateTime keyDownTime;
-        private bool isSpaceKeyDown;
-        private bool isThrHook;
+        private DateTime keyDownTime;   // Длительность удерживания клавишы
+        private DateTime cooldown;      // Время начала отсчёта кулдауна
+        private bool isSpaceKeyDown;    // Зажат ли пробел
+        private bool isThrHook;         // Закинут ли крючок
 
-        private HookMap myHook;
+        MapGenerator mapGenerator;  // Генератор карты и сама карта
+        private HookMap myHook;     // Крючок и леска
 
-        private readonly DispatcherTimer timer;
+        private readonly DispatcherTimer timer; // Общеигровой таймер
+
+        int points; // Очки
+        int tryAvaible;    // Общее количество оставшихся попыток, изначально пять
+        int games;  // Сколько осталось игр, изначально три
 
         public GlobalMap()
         {
@@ -151,6 +153,12 @@ namespace WpfApp1
             {
                 Interval = TimeSpan.FromMilliseconds(TimerInterval)
             };
+
+            points = 0;
+            tryAvaible = 5;
+            games = 3;
+
+            cooldown = DateTime.Now;
             timer.Tick += MovePlayer;
             timer.Tick += HookThr;
             isSpaceKeyDown = false;
@@ -168,7 +176,7 @@ namespace WpfApp1
             double currentLeft = Canvas.GetLeft(movingRectangle);
             double currentTop = Canvas.GetTop(movingRectangle);
 
-            if (Keyboard.IsKeyDown(Key.W) && currentTop - MoveSpeed > 100)
+            if (Keyboard.IsKeyDown(Key.W) && currentTop - MoveSpeed > 76)
             {
                 Canvas.SetTop(movingRectangle, currentTop - MoveSpeed);
                 if (myHook != null) myHook.Move0(Canvas.GetLeft(movingRectangle), Canvas.GetTop(movingRectangle));
@@ -178,7 +186,7 @@ namespace WpfApp1
                 Canvas.SetTop(movingRectangle, currentTop + MoveSpeed);
                 if (myHook != null) myHook.Move0(Canvas.GetLeft(movingRectangle), Canvas.GetTop(movingRectangle));
             }
-            if (Keyboard.IsKeyDown(Key.D) && currentLeft + movingRectangle.Width + MoveSpeed < 185)
+            if (Keyboard.IsKeyDown(Key.D) && currentLeft + movingRectangle.Width + MoveSpeed < 170)
             {
                 Canvas.SetLeft(movingRectangle, currentLeft + MoveSpeed);
                 if (myHook != null) myHook.Move0(Canvas.GetLeft(movingRectangle), Canvas.GetTop(movingRectangle));
@@ -189,7 +197,7 @@ namespace WpfApp1
                 if (myHook != null) myHook.Move0(Canvas.GetLeft(movingRectangle), Canvas.GetTop(movingRectangle));
             }
             //Начали замахиваться
-            if (Keyboard.IsKeyDown(Key.Space) && !isSpaceKeyDown && !isThrHook)
+            if (Keyboard.IsKeyDown(Key.Space) && !isSpaceKeyDown && !isThrHook && ((DateTime.Now - cooldown).TotalSeconds > 2))
             {
                 isSpaceKeyDown = true;
                 keyDownTime = DateTime.Now;
@@ -200,7 +208,24 @@ namespace WpfApp1
                 myHook.GoBack();
             }
             //Опустили крючок и начали рыбачить
+            if (isThrHook && Keyboard.IsKeyDown(Key.E))
+            {
+                int i, j;
+                for (i = 0; myHook.ycur - 45 * i > 61; i++) ;
+                for (j = 0; myHook.xcur - 45 * j > 165; j++) ;
 
+                if (i != 0 && j != 0 && i < 15 && j < 23)
+                {
+                    games--;
+                    tryAvaible--;
+                    //Запуск игры с настройками в зависимости от mapGenerator.matrix[i-1,j-1]
+                    MessageBox.Show($"m[{i-1},{j-1}] = {mapGenerator.matrix[i-1,j-1]}");
+
+
+                    //Завершение
+                    if (games == 0 || tryAvaible == 0) ExitF();
+                }
+            }
         }
         //Кинули крюк
         public void HookThr(object sender, EventArgs e)
@@ -209,6 +234,7 @@ namespace WpfApp1
             {
                 isThrHook = true;
                 isSpaceKeyDown = false;
+
 
                 double currentLeft = Canvas.GetLeft(movingRectangle);
                 double currentTop = Canvas.GetTop(movingRectangle);
@@ -244,10 +270,36 @@ namespace WpfApp1
                     myHook.CheckMePLS -= Cheker;
                     isThrHook = false;
                     myHook.DeleteMePLS();
+
+                    //Кулдаун на пробел
+                    cooldown = DateTime.Now;
                 }
             //Проверка на попадание на корягу
+            int i, j;
+            for (i = 0; myHook.ycur + 10 - 45 * i > 61; i++) ;
+            for (j = 0; myHook.xcur + 10 - 45 * j > 165; j++) ;
 
+            if (i != 0 && j != 0 && i < 15 && j < 23)
+                if (mapGenerator.matrix[i - 1, j - 1] == -1)
+                {
+                    myHook.CheckMePLS -= Cheker;
+                    isThrHook = false;
+                    myHook.DeleteMePLS();
 
+                    //Кулдаун на пробел
+                    cooldown = DateTime.Now;
+
+                    tryAvaible--;
+                    if (tryAvaible == 0) ExitF();
+
+                    tryAvaibleTB.Text = "Попыток " + tryAvaible.ToString() + '/' + games.ToString();
+                }
+
+        }
+        private void ExitF()
+        {
+            GameOver(points);
+            //Дописать выход
         }
 
         private async Task GameLoop()
@@ -260,9 +312,26 @@ namespace WpfApp1
 
         private void CreateTexture()
         {
-            MapGenerator mapGenerator = new MapGenerator(12,22);
+            mapGenerator = new MapGenerator(13,21);
             // Устанавливаем текстуру как источник изображения для Image
             matrixImage.Source = mapGenerator.CreateTexture();
         }
+
+        private void Exit_Click(object sender, RoutedEventArgs e)
+        {
+            //Переход в главное меню
+            ExitF();
+        }
+
+        private void Manual_Click(object sender, RoutedEventArgs e)
+        {
+
+            MessageBox.Show("WASD - движение пероснажа; SPACE - забрасывание/подтягивание поплавка; E(У) - начало поклёва;\n" +
+                            "Чем темнее клета - тем больше рыбы. Коричневые клетки - коряги, об которые тратятся жизни.\n" +
+                            "Всего есть 5 жизней, максимум можно прорыбачить 3 раза, остальные - запасные! Удачной игры!\n");
+        }
+
+        public delegate void Handler(int alpha);
+        public event Handler GameOver;
     }
 }

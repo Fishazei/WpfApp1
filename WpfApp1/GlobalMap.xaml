@@ -8,28 +8,64 @@
       d:DesignHeight="705" d:DesignWidth="1200"
       Title="GlobalMap"
       Name="GlobalMap1">
+    <Canvas x:Name="MainCanvas">
+        <Canvas.Background>
+            <ImageBrush ImageSource="/Sprite-0001.png"/>
+        </Canvas.Background>
+        <Canvas x:Name="test" Height="630" Canvas.Left="165" Width="1035" HorizontalAlignment="Left" Canvas.Top="61" VerticalAlignment="Top">
+            <Image Name="matrixImage" Stretch="UniformToFill" Height="630" Width="1035"/>
+        </Canvas>
 
-    <Grid Name="MainGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="13*"/>
-        </Grid.RowDefinitions>
-        <!--<Grid.Background> -->
-        <!--<ImageBrush ImageSource="/Sprite-0001.png"/>-->
-        <!--</Grid.Background> -->
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="5*"/>
-        </Grid.ColumnDefinitions>
-
-        <Image Name="matrixImage" Stretch="UniformToFill"  Grid.Column="1" Grid.Row="1"/>
-
-        <Canvas Name="MyCanvas" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="705" Grid.RowSpan="2" VerticalAlignment="Top" Width="1200">
-            <Rectangle Name="movingRectangle" Width="100" Height="100" Margin="0" Canvas.Left="10" Canvas.Top="100">
+        <Canvas Name="MyCanvas" HorizontalAlignment="Center" Height="705" VerticalAlignment="Center" Width="1200">
+            <Rectangle Name="movingRectangle" Width="100" Height="100" Canvas.Left="47" Canvas.Top="302" HorizontalAlignment="Left" VerticalAlignment="Center">
                 <Rectangle.Fill>
-                    <SolidColorBrush Color="BlueViolet" />
+                    <SolidColorBrush Color="#FFA571D4" />
                 </Rectangle.Fill>
             </Rectangle>
-        </Canvas>    
-    </Grid>
+        </Canvas>
+
+        <Image Height="705" Width="1200" Source="/Sprite-0002.png" />
+        <TextBlock x:Name="pointsTextBlock"
+                   Canvas.Left="17" 
+                   Canvas.Top="18" 
+                   Height="28" 
+                   Width="300" 
+                   TextWrapping="Wrap" 
+                   FontSize="27"
+                   FontFamily="Better VCR Regular"
+                   Text="ОР: 0" 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Top"/>
+        <TextBlock x:Name="tryAvaibleTB"
+                   Canvas.Left="17" 
+                   Canvas.Top="46"
+                   TextWrapping="Wrap" 
+                   FontSize="27"
+                   FontFamily="Better VCR Regular" 
+                   HorizontalAlignment="Left" 
+                   VerticalAlignment="Center" Width="299"><Run Text="Попыто"/><Run Text="к 5/3"/></TextBlock>
+        <Button x:Name="Exit"
+                Content="Выход" 
+                FontSize="24"
+                FontFamily="Better VCR Regular" 
+                Height="60" 
+                Canvas.Left="330" 
+                Canvas.Top="13" 
+                Width="195" 
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Center" Click="Exit_Click"/>
+        <Button x:Name="Manual"
+            Content="Управление" 
+            FontSize="24"
+            FontFamily="Better VCR Regular" 
+            Height="60" 
+            Canvas.Left="539" 
+            Canvas.Top="13" 
+            Width="195" HorizontalAlignment="Left" VerticalAlignment="Center" Click="Manual_Click"/>
+        <Button x:Name="Regenerate" Canvas.Left="747" Canvas.Top="13" Height="60" Width="195" HorizontalAlignment="Left" VerticalAlignment="Center"
+                Content="Новая" 
+                FontSize="24"
+                FontFamily="Better VCR Regular"/>
+
+    </Canvas>
 </Page>
